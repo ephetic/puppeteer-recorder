@@ -73,6 +73,9 @@ export default class CodeGenerator {
         case 'click':
           this._blocks.push(this._handleClick(selector, events))
           break
+        case 'contextmenu':
+          this._blocks.push(this._handleContextMenu(selector, events))
+          break
         case 'change':
           if (tagName === 'SELECT') {
             this._blocks.push(this._handleChange(selector, value))
@@ -150,6 +153,14 @@ export default class CodeGenerator {
       block.addLine({ type: domEvents.CLICK, value: `await ${this._frame}.waitForSelector('${selector}')` })
     }
     block.addLine({ type: domEvents.CLICK, value: `await ${this._frame}.click('${selector}')` })
+    return block
+  }
+  _handleContextMenu (selector) {
+    const block = new Block(this._frameId)
+    if (this._options.waitForSelectorOnClick) {
+      block.addLine({ type: domEvents.CONTEXTMENU, value: `await ${this._frame}.waitForSelector('${selector}')` })
+    }
+    block.addLine({ type: domEvents.CONTEXTMENU, value: `await ${this._frame}.click('${selector}',{button: 'right'})` })
     return block
   }
   _handleChange (selector, value) {
