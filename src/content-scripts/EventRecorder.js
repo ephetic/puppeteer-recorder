@@ -100,10 +100,15 @@ export default class EventRecorder {
     // we explicitly catch any errors and swallow them, as none node-type events are also ingested.
     // for these events we cannot generate selectors, which is OK
     try {
-      const optimizedMinLength = (e.target.id) ? 2 : 10 // if the target has an id, use that instead of multiple other selectors
-      const selector = this._dataAttribute
-        ? finder(e.target, {seedMinLength: 5, optimizedMinLength: optimizedMinLength, attr: (name, _value) => name === this._dataAttribute})
-        : finder(e.target, {seedMinLength: 5, optimizedMinLength: optimizedMinLength})
+      let selector
+      if (e.target.id) selector = '#' + e.target.id
+      else {
+        let root = e.target
+        while (root && !root.id) root = root.parentElement
+        selector = this._dataAttribute
+          ? finder(e.target, {root: root, seedMinLength: 5, attr: (name, _value) => name === this._dataAttribute})
+          : finder(e.target, {root: root, seedMinLength: 5})
+      }
 
       const msg = {
         selector: selector,
