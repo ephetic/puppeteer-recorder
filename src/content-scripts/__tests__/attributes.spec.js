@@ -8,7 +8,7 @@ let port
 let browser
 let page
 
-describe.only('attributes', () => {
+describe('attributes', () => {
   beforeAll(async (done) => {
     await runDist()
     const buildDir = process.env.NODE_ENV === 'production' ? '../../../dist' : '../../../build'
@@ -45,10 +45,10 @@ describe.only('attributes', () => {
 
   test('it should use data attributes throughout selector', async () => {
     await page.evaluate('window.eventRecorder._dataAttribute = "data-qa"')
-    await page.click('span')
+    await page.click('#content-root [data-qa="article-body"] > span')
 
     const event = (await waitForAndGetEvents(page, 1))[0]
-    expect(event.selector).toEqual('body > #content-root > [data-qa="article-wrapper"] > [data-qa="article-body"] > span')
+    expect(event.selector).toEqual('#content-root [data-qa="article-body"] > span')
   })
 
 })

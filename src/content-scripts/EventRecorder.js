@@ -100,27 +100,40 @@ export default class EventRecorder {
     // we explicitly catch any errors and swallow them, as none node-type events are also ingested.
     // for these events we cannot generate selectors, which is OK
     try {
+      let target = e.target
+      { // lift out of svgs
+        while (target && target.tagName !== 'svg') target = target.parentElement
+        if (target && target.tagName === 'svg') target = target.parentElement
+        else target = e.target
+      }
+
       let selector
-      if (e.target.id) selector = '#' + e.target.id
+      if (target.id) selector = '#' + target.id
       else {
-        let root = e.target
+        let root = target
         while (root && !root.id) root = root.parentElement
+        root = root || document.body
         selector = this._dataAttribute
-          ? finder(e.target, {root: root, seedMinLength: 5, attr: (name, _value) => name === this._dataAttribute})
-          : finder(e.target, {root: root, seedMinLength: 5})
+          ? finder(target, {root: root, attr: (name, _value) => name === this._dataAttribute})
+          : finder(target, {root: root})
+        if (root !== document.body && !selector.startsWith('#' + root.id)) {
+          selector = '#' + root.id + ' ' + selector
+        }
       }
 
       const msg = {
         selector: selector,
-        value: e.target.value,
-        tagName: e.target.tagName,
+        value: target.value,
+        tagName: target.tagName,
         action: e.type,
         keyCode: e.keyCode ? e.keyCode : null,
-        href: e.target.href ? e.target.href : null,
+        href: target.href ? target.href : null,
         coordinates: EventRecorder._getCoordinates(e)
       }
       this._sendMessage(msg)
-    } catch (e) {}
+    } catch (err) {
+      console.log('puppeteer-recorder couldn\'t handle event:', e, err)
+    }
   }
 
   _getEventLog () {
