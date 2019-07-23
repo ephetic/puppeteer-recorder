@@ -68,6 +68,8 @@ export default class CodeGenerator {
         case 'keydown':
           if (keyCode === 9) { // tab key
             this._blocks.push(this._handleKeyDown(selector, value, keyCode))
+            this._blocks.push(this._handleTab())
+            events[i]._handled = true
           }
           break
         case 'click':
@@ -79,6 +81,9 @@ export default class CodeGenerator {
         case 'change':
           if (tagName === 'SELECT') {
             this._blocks.push(this._handleChange(selector, value))
+          }
+          if (events[i-1] && events[i-1].action == 'keydown' && !events[i-1]._handled) {
+            this._blocks.push(this._handleKeyDown(selector, value, keyCode))
           }
           break
         case pptrActions.GOTO:
@@ -144,6 +149,12 @@ export default class CodeGenerator {
   _handleKeyDown (selector, value) {
     const block = new Block(this._frameId)
     block.addLine({ type: domEvents.KEYDOWN, value: `await ${this._frame}.type('${selector}', '${value}')` })
+    return block
+  }
+
+  _handleTab () {
+    const block = new Block(this._frameId)
+    block.addLine({ type: domEvents.KEYDOWN, value: `await ${this._frame}.keyboard.press('Tab')` })
     return block
   }
 
